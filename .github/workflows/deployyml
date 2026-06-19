@@ -1,0 +1,18 @@
+name: Deploy Jira Agent
+
+on:
+push:
+branches:
+- main
+
+jobs:
+deploy:
+runs-on: self-hosted
+
+
+steps:
+  - uses: actions/checkout@v4
+
+  - name: Build and deploy
+    run: |
+      docker compose up -d --build --remove-orphans
