@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jira Card Agent - Agente AI</title>
+  <!-- Google Fonts - Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="background-decor">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <main class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo">
+        <i class="fa-brands fa-jira brand-icon"></i>
+        <span>Jira Agent</span>
+      </div>
+      <h1>Gerador de Cards com IA</h1>
+      <p class="subtitle">Insira uma descrição livre e deixe o Agente estruturar a tarefa perfeita para o Jira.</p>
+    </header>
+
+    <!-- STEP 1: INPUT TEXT -->
+    <section id="step-1" class="card-glass step-section active">
+      <div class="step-badge">Passo 1 de 2</div>
+      <h2>Descreva a tarefa ou problema</h2>
+      <p class="field-desc">Escreva detalhadamente o comportamento atual, o cenário e o que precisa ser feito.</p>
+      
+      <div class="input-group">
+        <textarea id="user-text" placeholder="Exemplo: O leitor de código de barras abre o teclado virtual na tela de separação. Precisamos impedir a abertura do teclado para melhorar a produtividade." rows="6"></textarea>
+      </div>
+
+      <button id="btn-analyze" class="btn btn-primary">
+        <span>Analisar com Agente</span>
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+      </button>
+    </section>
+
+    <!-- STEP 2: REVIEW AND EDIT -->
+    <section id="step-2" class="card-glass step-section">
+      <div class="step-badge">Passo 2 de 2</div>
+      <h2>Revisar e Ajustar Informações</h2>
+      <p class="field-desc">A IA extraiu os dados abaixo. Você pode editá-los antes de enviar ao Jira.</p>
+
+      <div class="editor-grid">
+        <!-- Left Side: Fields -->
+        <div class="fields-column">
+          <div class="input-wrapper">
+            <label for="issue-summary">Título (Summary)</label>
+            <input type="text" id="issue-summary" placeholder="Título do card">
+          </div>
+
+          <div class="row-fields">
+            <!-- Custom Dropdown: Tipo de Card -->
+            <div class="input-wrapper">
+              <label>Tipo de Card</label>
+              <div class="custom-select" id="select-type" data-value="Bug">
+                <div class="custom-select__trigger">
+                  <span class="custom-select__label">Bug 🐛</span>
+                  <i class="fa-solid fa-chevron-down custom-select__arrow"></i>
+                </div>
+                <div class="custom-select__options">
+                  <div class="custom-select__option selected" data-value="Bug">Bug 🐛</div>
+                  <div class="custom-select__option" data-value="Story">Story 📖</div>
+                  <div class="custom-select__option" data-value="Task">Task 🛠️</div>
+                  <div class="custom-select__option" data-value="Improvement">Improvement 📈</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom Dropdown: Prioridade -->
+            <div class="input-wrapper">
+              <label>Prioridade</label>
+              <div class="custom-select" id="select-priority" data-value="Medium">
+                <div class="custom-select__trigger">
+                  <span class="custom-select__label">Medium 🟡</span>
+                  <i class="fa-solid fa-chevron-down custom-select__arrow"></i>
+                </div>
+                <div class="custom-select__options">
+                  <div class="custom-select__option" data-value="Highest">Highest 🔴</div>
+                  <div class="custom-select__option" data-value="High">High 🟠</div>
+                  <div class="custom-select__option selected" data-value="Medium">Medium 🟡</div>
+                  <div class="custom-select__option" data-value="Low">Low 🟢</div>
+                  <div class="custom-select__option" data-value="Lowest">Lowest 🔵</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-wrapper">
+            <label for="issue-labels">Labels (separados por vírgula)</label>
+            <input type="text" id="issue-labels" placeholder="wms, mobile, scanner">
+          </div>
+        </div>
+
+        <!-- Right Side: Markdown Description -->
+        <div class="description-column">
+          <div class="tab-header">
+            <button class="tab-btn active" data-tab="edit">Editor Markdown</button>
+            <button class="tab-btn" data-tab="preview">Visualização</button>
+          </div>
+
+          <div class="tab-content active" id="tab-edit">
+            <textarea id="issue-description" placeholder="Descrição estruturada em Markdown..." rows="12"></textarea>
+          </div>
+
+          <div class="tab-content" id="tab-preview">
+            <div class="markdown-preview" id="description-preview">
+              <!-- Rendered markdown html will go here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-footer">
+        <button id="btn-back" class="btn btn-secondary">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Voltar</span>
+        </button>
+        <button id="btn-submit" class="btn btn-success">
+          <span>Criar Card no Jira</span>
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 3: SUCCESS STATE -->
+    <section id="step-3" class="card-glass step-section">
+      <div class="success-header">
+        <div class="success-icon">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h2>Card Criado com Sucesso!</h2>
+        <p>A tarefa foi integrada ao Jira com todas as especificações.</p>
+      </div>
+
+      <div class="ticket-details">
+        <div class="ticket-header">
+          <i class="fa-brands fa-jira ticket-jira-icon"></i>
+          <span class="ticket-key" id="success-key">WMS-123</span>
+        </div>
+        <div class="ticket-body">
+          <h3 id="success-summary">Impedir abertura do teclado virtual na tela de separação</h3>
+          <div class="ticket-meta">
+            <span class="badge" id="success-type"><i class="fa-solid fa-bug"></i> Bug</span>
+            <span class="badge" id="success-priority"><i class="fa-solid fa-circle"></i> Medium</span>
+          </div>
+          <div id="success-labels" class="ticket-labels">
+            <!-- Labels list -->
+          </div>
+        </div>
+      </div>
+
+      <div class="success-actions">
+        <a id="success-link" href="#" target="_blank" class="btn btn-primary">
+          <span>Abrir no Jira Cloud</span>
+          <i class="fa-solid fa-up-right-from-square"></i>
+        </a>
+        <button id="btn-restart" class="btn btn-secondary">
+          <span>Criar Outro Card</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- LOADING OVERLAY -->
+  <div id="loader" class="loader-overlay">
+    <div class="loader-content">
+      <div class="spinner"></div>
+      <p id="loader-message">Processando dados com a IA...</p>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toast" class="toast">
+    <i class="fa-solid fa-triangle-exclamation toast-icon"></i>
+    <span id="toast-message">Mensagem de erro</span>
+  </div>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>

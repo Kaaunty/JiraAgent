@@ -1,0 +1,35 @@
+{
+  "name": "jira-agent",
+  "version": "1.0.0",
+  "description": "Agente de IA para criação de cards no Jira usando DeepSeek",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "lint": "eslint src/**/*.js"
+  },
+  "keywords": [
+    "jira",
+    "deepseek",
+    "agent",
+    "ai",
+    "express"
+  ],
+  "author": "Antigravity",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "md-to-adf": "^0.5.4",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.16.0",
+    "globals": "^15.13.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
