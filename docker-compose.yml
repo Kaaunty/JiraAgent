@@ -1,11 +1,10 @@
 services:
-  jira-agent:
-    build: .
-    ports:
-      - "${PORT:-3000}:3000"
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-      - /app/node_modules
-    restart: unless-stopped
+jira-agent:
+container_name: jira-agent
+build:
+  context: .
+ports:
+  - "${PORT:-3000}:3000"
+env_file:
+  - .env
+restart: unless-stopped
