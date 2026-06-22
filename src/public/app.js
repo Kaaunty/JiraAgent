@@ -25,6 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Custom dropdowns
   const selectType = document.getElementById("select-type");
   const selectPriority = document.getElementById("select-priority");
+  const selectCategory = document.getElementById("select-category");
+  const selectComponent = document.getElementById("select-component");
 
   // Step 3 Outputs
   const successKey = document.getElementById("success-key");
@@ -207,6 +209,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (issueSummary) issueSummary.value = data.summary || "";
       setCustomSelectValue(selectType, data.issueType || "Task");
       setCustomSelectValue(selectPriority, data.priority || "Medium");
+      setCustomSelectValue(selectCategory, data.category || "Outros");
+      setCustomSelectValue(selectComponent, data.component || "Outros");
       if (issueLabels) issueLabels.value = (data.labels || []).join(", ");
       if (issueDescription) issueDescription.value = data.description || "";
 
@@ -252,6 +256,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const summary = issueSummary.value.trim();
     const type = getCustomSelectValue(selectType);
     const priority = getCustomSelectValue(selectPriority);
+    const category = getCustomSelectValue(selectCategory);
+    const component = getCustomSelectValue(selectComponent);
     const description = issueDescription.value.trim();
 
     const labels = issueLabels.value
@@ -278,6 +284,8 @@ document.addEventListener("DOMContentLoaded", () => {
           issueType: type,
           summary: summary,
           priority: priority,
+          category: category,
+          component: component,
           labels: labels,
           description: description
         })
@@ -334,6 +342,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (userText) userText.value = "";
       setCustomSelectValue(selectType, "Bug");
       setCustomSelectValue(selectPriority, "Medium");
+      setCustomSelectValue(selectCategory, "Outros");
+      setCustomSelectValue(selectComponent, "Outros");
       transitionTo(step1);
     });
   }
