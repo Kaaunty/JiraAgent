@@ -14,20 +14,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Step 2 Inputs
   const issueSummary = document.getElementById("issue-summary");
-  const issueLabels = document.getElementById("issue-labels");
+  // Labels are now auto-generated, display them here
+  const generatedLabels = document.getElementById("generated-labels");
+
   const issueDescription = document.getElementById("issue-description");
   const descriptionPreview = document.getElementById("description-preview");
   const btnBack = document.getElementById("btn-back");
   const btnSubmit = document.getElementById("btn-submit");
+  // Holds labels from analysis
+  let analysisLabels = [];
   const tabBtns = document.querySelectorAll(".tab-btn");
   const tabContents = document.querySelectorAll(".tab-content");
 
-  // Custom dropdowns
+  // Custom dropdowns (only type and priority are needed)
   const selectType = document.getElementById("select-type");
   const selectPriority = document.getElementById("select-priority");
-  const selectCategory = document.getElementById("select-category");
-  const selectComponent = document.getElementById("select-component");
-
+  // Allowed label values (must correspond to categories)
+  const allowedLabels = [
+    "frontend","backend","mobile","integração","banco de dados","infraestrutura","segurança",
+    "ux/ui","performance","relatórios","automação","documentação","devops","dados","outros",
+    "erp","fw","importacao","task"
+  ];
   // Step 3 Outputs
   const successKey = document.getElementById("success-key");
   const successSummary = document.getElementById("success-summary");
@@ -120,19 +127,19 @@ document.addEventListener("DOMContentLoaded", () => {
   // Helper Functions
   // -------------------------------------------------------
   function showLoader(message) {
-    loaderMessage.textContent = message;
-    loader.classList.add("active");
+    if (loaderMessage) loaderMessage.textContent = message;
+    if (loader) loader.classList.add("active");
   }
 
   function hideLoader() {
-    loader.classList.remove("active");
+    if (loader) loader.classList.remove("active");
   }
 
   function showToast(message) {
-    toastMessage.textContent = message;
-    toast.classList.add("active");
+    if (toastMessage) toastMessage.textContent = message;
+    if (toast) toast.classList.add("active");
     setTimeout(() => {
-      toast.classList.remove("active");
+      if (toast) toast.classList.remove("active");
     }, 5000);
   }
 
@@ -205,14 +212,19 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(data.error || "Erro ao analisar o texto.");
       }
 
-      // Populate Step 2 fields
+      // Populate Step 2 fields with safety checks
       if (issueSummary) issueSummary.value = data.summary || "";
-      setCustomSelectValue(selectType, data.issueType || "Task");
-      setCustomSelectValue(selectPriority, data.priority || "Medium");
-      setCustomSelectValue(selectCategory, data.category || "Outros");
-      setCustomSelectValue(selectComponent, data.component || "Outros");
-      if (issueLabels) issueLabels.value = (data.labels || []).join(", ");
+      if (selectType) setCustomSelectValue(selectType, "Task");
+      if (selectPriority) setCustomSelectValue(selectPriority, data.priority || "Medium");
+      // Category and Component are ignored in the new flow
+
       if (issueDescription) issueDescription.value = data.description || "";
+
+      // Store and display generated labels (remove redundant "task")
+      analysisLabels = data.labels || [];
+      const filteredLabels = analysisLabels.filter(l => l.toLowerCase() !== "task");
+      const displayedLabels = filteredLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1));
+      if (generatedLabels) generatedLabels.textContent = displayedLabels.join(", ");
 
       // Render Markdown preview
       if (descriptionPreview) descriptionPreview.innerHTML = parseMarkdown(data.description);
@@ -251,19 +263,15 @@ document.addEventListener("DOMContentLoaded", () => {
     transitionTo(step1);
   });
 
-  // Step 2: Submit Card to Jira
+  // Step 2: Submit Card to Jira (category and component omitted, issueType forced to Task)
   btnSubmit.addEventListener("click", async () => {
     const summary = issueSummary.value.trim();
-    const type = getCustomSelectValue(selectType);
+    const type = "Task"; // always Task
     const priority = getCustomSelectValue(selectPriority);
-    const category = getCustomSelectValue(selectCategory);
-    const component = getCustomSelectValue(selectComponent);
     const description = issueDescription.value.trim();
 
-    const labels = issueLabels.value
-      .split(",")
-      .map(l => l.trim().toLowerCase())
-      .filter(l => l !== "");
+      // Prepare labels for submission (exclude redundant "task")
+      const labels = analysisLabels.filter(l => l.toLowerCase() !== "task");
 
     if (!summary) {
       showToast("O resumo do card é obrigatório.");
@@ -284,8 +292,6 @@ document.addEventListener("DOMContentLoaded", () => {
           issueType: type,
           summary: summary,
           priority: priority,
-          category: category,
-          component: component,
           labels: labels,
           description: description
         })
@@ -310,14 +316,18 @@ document.addEventListener("DOMContentLoaded", () => {
       successType.innerHTML = `<i class="fa-solid ${typeIcon}"></i> ${data.issue.issueType}`;
       successPriority.innerHTML = `<i class="fa-solid fa-circle"></i> ${data.issue.priority}`;
 
+      // Show generated labels (exclude redundant "Task" and capitalize)
       successLabels.innerHTML = "";
       if (data.issue.labels && data.issue.labels.length > 0) {
-        data.issue.labels.forEach(label => {
-          const span = document.createElement("span");
-          span.className = "label-tag";
-          span.textContent = label;
-          successLabels.appendChild(span);
-        });
+        data.issue.labels
+          .filter(l => l.toLowerCase() !== "task")
+          .map(l => l.charAt(0).toUpperCase() + l.slice(1))
+          .forEach(label => {
+            const span = document.createElement("span");
+            span.className = "label-tag";
+            span.textContent = label;
+            successLabels.appendChild(span);
+          });
       }
 
       if (data.issueUrl) {
@@ -340,10 +350,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnRestart) {
     btnRestart.addEventListener("click", () => {
       if (userText) userText.value = "";
-      setCustomSelectValue(selectType, "Bug");
+      setCustomSelectValue(selectType, "Task");
       setCustomSelectValue(selectPriority, "Medium");
-      setCustomSelectValue(selectCategory, "Outros");
-      setCustomSelectValue(selectComponent, "Outros");
       transitionTo(step1);
     });
   }
