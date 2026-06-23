@@ -220,11 +220,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (issueDescription) issueDescription.value = data.description || "";
 
-      // Store and display generated labels (remove redundant "task")
-      analysisLabels = data.labels || [];
-      const filteredLabels = analysisLabels.filter(l => l.toLowerCase() !== "task");
-      const displayedLabels = filteredLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1));
-      if (generatedLabels) generatedLabels.textContent = displayedLabels.join(", ");
+      // Labels are no longer used; clear any stored labels
+      analysisLabels = [];
 
       // Render Markdown preview
       if (descriptionPreview) descriptionPreview.innerHTML = parseMarkdown(data.description);
@@ -271,7 +268,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const description = issueDescription.value.trim();
 
       // Prepare labels for submission (exclude redundant "task")
-      const labels = analysisLabels.filter(l => l.toLowerCase() !== "task");
+      // No labels are sent to Jira
+      const labels = [];
 
     if (!summary) {
       showToast("O resumo do card é obrigatório.");
@@ -317,18 +315,8 @@ document.addEventListener("DOMContentLoaded", () => {
       successPriority.innerHTML = `<i class="fa-solid fa-circle"></i> ${data.issue.priority}`;
 
       // Show generated labels (exclude redundant "Task" and capitalize)
+      // Labels are omitted from success view
       successLabels.innerHTML = "";
-      if (data.issue.labels && data.issue.labels.length > 0) {
-        data.issue.labels
-          .filter(l => l.toLowerCase() !== "task")
-          .map(l => l.charAt(0).toUpperCase() + l.slice(1))
-          .forEach(label => {
-            const span = document.createElement("span");
-            span.className = "label-tag";
-            span.textContent = label;
-            successLabels.appendChild(span);
-          });
-      }
 
       if (data.issueUrl) {
         successLink.href = data.issueUrl;
