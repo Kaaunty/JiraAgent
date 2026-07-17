@@ -6,6 +6,49 @@ dotenv.config();
 
 const NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
 
+function escapeLiteralQuotesInJson(jsonStr) {
+  let result = "";
+  for (let i = 0; i < jsonStr.length; i++) {
+    const char = jsonStr[i];
+    if (char === '"') {
+      let backslashes = 0;
+      let j = i - 1;
+      while (j >= 0 && jsonStr[j] === '\\') {
+        backslashes++;
+        j--;
+      }
+      if (backslashes % 2 !== 0) {
+        result += char;
+        continue;
+      }
+      
+      let prevStr = jsonStr.substring(0, i).trim();
+      let lastChar = prevStr[prevStr.length - 1];
+      
+      let nextStr = jsonStr.substring(i + 1).trim();
+      let nextChar = nextStr[0];
+      
+      let isStructural = false;
+      if (i === 0 || i === jsonStr.length - 1) {
+        isStructural = true;
+      } else if (lastChar === '{' || lastChar === '[' || lastChar === ',' || lastChar === ':') {
+        isStructural = true;
+      } else if (nextChar === '}' || nextChar === ']' || nextChar === ',' || nextChar === ':') {
+        isStructural = true;
+      }
+      
+      if (isStructural) {
+        result += char;
+      } else {
+        result += '\\"';
+      }
+    } else {
+      result += char;
+    }
+  }
+  return result;
+}
+
 /**
  * Envia o texto do usuário para a API do NVIDIA NIM e retorna um JSON estruturado com os dados da issue.
  * 
@@ -49,6 +92,9 @@ export async function analyzeTextWithNvidia(userText) {
     if (cleanedContent.startsWith("```")) {
       cleanedContent = cleanedContent.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
     }
+
+    // First, escape literal unescaped double quotes inside the JSON string
+    cleanedContent = escapeLiteralQuotesInJson(cleanedContent);
 
     // Escape raw unescaped newlines inside JSON string values
     let insideString = false;
