@@ -69,9 +69,11 @@ app.use((err, req, res, _next) => {
     statusCode = 429;
   }
 
-  res.status(statusCode).json({
-    error: cleanMessage
-  });
+  if (!res.headersSent) {
+    res.status(statusCode).json({
+      error: cleanMessage
+    });
+  }
 });
 
 // Inicialização do Servidor

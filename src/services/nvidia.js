@@ -66,7 +66,7 @@ export async function analyzeTextWithNvidia(userText) {
     const response = await axios.post(
       NVIDIA_API_URL,
       {
-        model: "meta/llama-3.1-70b-instruct",
+        model: "meta/llama-3.1-8b-instruct",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: getAnalyzePrompt(userText) }
