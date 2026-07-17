@@ -41,6 +41,7 @@ O JSON retornado deve ter exatamente a seguinte estrutura:
 }
 
 ### Regras Importantes:
+- Adote a perspectiva direta de quem está escrevendo a tarefa no Jira. Nunca use metalinguagem ou referências ao texto do usuário (evite expressões como "o texto solicita", "o usuário pede", "o texto enviado", "segundo o relato"). Escreva de forma direta ou em primeira pessoa do plural (ex: "Precisamos de...", "O objetivo é...", "Atualmente ocorre que...").
 - Seja descritivo e elabore as informações com base no texto fornecido, sem inventar regras de negócio externas.
 - Retorne EXCLUSIVAMENTE o JSON válido, sem blocos de código markdown ou explicações adicionais.`;
 
