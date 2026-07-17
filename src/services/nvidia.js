@@ -129,8 +129,10 @@ export async function analyzeTextWithNvidia(userText) {
     try {
       return JSON.parse(escapedContent);
     } catch (err) {
-      console.error("Erro ao fazer parse do JSON retornado pelo NVIDIA NIM:", content);
-      throw new Error(`JSON inválido retornado pelo modelo: ${content}`);
+      console.error("Erro ao fazer parse do JSON retornado pelo NVIDIA NIM. Erro:", err.message);
+      console.error("Conteúdo original:", content);
+      console.error("Conteúdo processado (escapedContent):", escapedContent);
+      throw new Error(`JSON inválido retornado pelo modelo: ${err.message}. Original: ${content}`);
     }
   } catch (error) {
     if (error.code === "ECONNABORTED") {
