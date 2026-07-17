@@ -12,11 +12,11 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware para Timeout Global de 30 segundos
+// Middleware para Timeout Global de 60 segundos
 app.use((req, res, next) => {
-  res.setTimeout(30000, () => {
+  res.setTimeout(60000, () => {
     if (!res.headersSent) {
-      res.status(503).json({ error: "Tempo limite de requisição excedido (Timeout de 30s)" });
+      res.status(503).json({ error: "Tempo limite de requisição excedido (Timeout de 60s)" });
     }
   });
   next();

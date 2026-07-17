@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { analyzeTextWithDeepSeek } from "../services/deepseek.js";
+import { analyzeTextWithNvidia } from "../services/nvidia.js";
 import { createJiraIssue } from "../services/jira.js";
 import { issueSchema } from "../validators/issueSchema.js";
 
@@ -17,14 +17,14 @@ router.post("/analyze", async (req, res, next) => {
   }
 
   try {
-    // 1. Envia texto para o DeepSeek estruturar
-    const aiResponse = await analyzeTextWithDeepSeek(texto);
+    // 1. Envia texto para o NVIDIA NIM estruturar
+    const aiResponse = await analyzeTextWithNvidia(texto);
 
     // 2. Valida o JSON retornado utilizando o Zod
     const validationResult = issueSchema.safeParse(aiResponse);
 
     if (!validationResult.success) {
-      console.error("Resposta do DeepSeek inválida de acordo com o Zod:", validationResult.error.format());
+      console.error("Resposta do NVIDIA NIM inválida de acordo com o Zod:", validationResult.error.format());
       return res.status(422).json({ error: "Invalid AI response" });
     }
 
