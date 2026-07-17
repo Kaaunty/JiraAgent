@@ -31,10 +31,39 @@ function escapeLiteralQuotesInJson(jsonStr) {
       let isStructural = false;
       if (i === 0 || i === jsonStr.length - 1) {
         isStructural = true;
-      } else if (lastChar === '{' || lastChar === '[' || lastChar === ',' || lastChar === ':') {
+      } else if (lastChar === '{' || lastChar === '[' || lastChar === ',') {
         isStructural = true;
-      } else if (nextChar === '}' || nextChar === ']' || nextChar === ',' || nextChar === ':') {
+      } else if (lastChar === ':') {
+        // A structural colon must be preceded by a key (which ends with a double quote)
+        let beforeColon = prevStr.substring(0, prevStr.length - 1).trim();
+        if (beforeColon[beforeColon.length - 1] === '"') {
+          isStructural = true;
+        }
+      } else if (nextChar === '}' || nextChar === ']') {
         isStructural = true;
+      } else if (nextChar === ',') {
+        // Verify if the comma is followed by a new key (starts with ") or end of block (} or ])
+        let afterComma = nextStr.substring(1).trim();
+        let firstNonWhitespace = afterComma[0];
+        if (firstNonWhitespace === '"' || firstNonWhitespace === '}' || firstNonWhitespace === ']') {
+          isStructural = true;
+        }
+      } else if (nextChar === ':') {
+        // Verify if the colon is followed by a value start
+        let afterColon = nextStr.substring(1).trim();
+        let firstNonWhitespace = afterColon[0];
+        if (
+          firstNonWhitespace === '"' || 
+          firstNonWhitespace === '[' || 
+          firstNonWhitespace === '{' || 
+          firstNonWhitespace === 't' || // true
+          firstNonWhitespace === 'f' || // false
+          firstNonWhitespace === 'n' || // null
+          (firstNonWhitespace >= '0' && firstNonWhitespace <= '9') ||
+          firstNonWhitespace === '-'
+        ) {
+          isStructural = true;
+        }
       }
       
       if (isStructural) {
