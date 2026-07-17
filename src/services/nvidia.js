@@ -78,6 +78,32 @@ function escapeLiteralQuotesInJson(jsonStr) {
   return result;
 }
 
+function repairTruncatedJson(jsonStr) {
+  let cleaned = jsonStr.trim();
+  if (cleaned.startsWith('{') && !cleaned.endsWith('}')) {
+    let quoteCount = 0;
+    for (let i = 0; i < cleaned.length; i++) {
+      if (cleaned[i] === '"') {
+        let backslashes = 0;
+        let j = i - 1;
+        while (j >= 0 && cleaned[j] === '\\') {
+          backslashes++;
+          j--;
+        }
+        if (backslashes % 2 === 0) {
+          quoteCount++;
+        }
+      }
+    }
+    if (quoteCount % 2 !== 0) {
+      return cleaned + '"\n}';
+    } else {
+      return cleaned + '\n}';
+    }
+  }
+  return jsonStr;
+}
+
 /**
  * Envia o texto do usuário para a API do NVIDIA NIM e retorna um JSON estruturado com os dados da issue.
  * 
@@ -100,7 +126,8 @@ export async function analyzeTextWithNvidia(userText) {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: getAnalyzePrompt(userText) }
         ],
-        temperature: 0.2
+        temperature: 0.2,
+        max_tokens: 4096
       },
       {
         headers: {
@@ -112,14 +139,18 @@ export async function analyzeTextWithNvidia(userText) {
     );
 
     const content = response.data?.choices?.[0]?.message?.content;
+    console.log("RAW CONTENT FROM MODEL:", JSON.stringify(content));
     
     if (!content) {
       throw new Error("Resposta vazia retornada pelo modelo");
     }
 
     let cleanedContent = content.trim();
-    if (cleanedContent.startsWith("```")) {
-      cleanedContent = cleanedContent.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+    cleanedContent = repairTruncatedJson(cleanedContent);
+    const firstBrace = cleanedContent.indexOf('{');
+    const lastBrace = cleanedContent.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
+      cleanedContent = cleanedContent.substring(firstBrace, lastBrace + 1);
     }
 
     // First, escape literal unescaped double quotes inside the JSON string
