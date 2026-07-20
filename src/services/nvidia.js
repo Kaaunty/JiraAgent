@@ -80,28 +80,71 @@ function escapeLiteralQuotesInJson(jsonStr) {
 
 function repairTruncatedJson(jsonStr) {
   let cleaned = jsonStr.trim();
-  if (cleaned.startsWith('{') && !cleaned.endsWith('}')) {
-    let quoteCount = 0;
-    for (let i = 0; i < cleaned.length; i++) {
-      if (cleaned[i] === '"') {
-        let backslashes = 0;
-        let j = i - 1;
-        while (j >= 0 && cleaned[j] === '\\') {
-          backslashes++;
-          j--;
-        }
-        if (backslashes % 2 === 0) {
-          quoteCount++;
-        }
+  if (!cleaned.startsWith('{')) {
+    return jsonStr;
+  }
+
+  // Count unescaped double quotes to fix unclosed strings
+  let insideString = false;
+  for (let i = 0; i < cleaned.length; i++) {
+    if (cleaned[i] === '"') {
+      let backslashes = 0;
+      let j = i - 1;
+      while (j >= 0 && cleaned[j] === '\\') {
+        backslashes++;
+        j--;
+      }
+      if (backslashes % 2 === 0) {
+        insideString = !insideString;
       }
     }
-    if (quoteCount % 2 !== 0) {
-      return cleaned + '"\n}';
-    } else {
-      return cleaned + '\n}';
+  }
+
+  if (insideString) {
+    cleaned += '"';
+  }
+
+  // Remove trailing commas or dangling key/value pairs if truncated mid-property
+  cleaned = cleaned.replace(/,\s*$/, "");
+  cleaned = cleaned.replace(/,\s*"[^"]*"\s*:\s*$/, "");
+  cleaned = cleaned.replace(/{\s*"[^"]*"\s*:\s*$/, "{");
+
+  // Balance braces and brackets
+  let openBraces = 0;
+  let openBrackets = 0;
+  insideString = false;
+
+  for (let i = 0; i < cleaned.length; i++) {
+    const char = cleaned[i];
+    if (char === '"') {
+      let backslashes = 0;
+      let j = i - 1;
+      while (j >= 0 && cleaned[j] === '\\') {
+        backslashes++;
+        j--;
+      }
+      if (backslashes % 2 === 0) {
+        insideString = !insideString;
+      }
+    }
+    if (!insideString) {
+      if (char === '{') openBraces++;
+      if (char === '}') openBraces = Math.max(0, openBraces - 1);
+      if (char === '[') openBrackets++;
+      if (char === ']') openBrackets = Math.max(0, openBrackets - 1);
     }
   }
-  return jsonStr;
+
+  while (openBrackets > 0) {
+    cleaned += ']';
+    openBrackets--;
+  }
+  while (openBraces > 0) {
+    cleaned += '}';
+    openBraces--;
+  }
+
+  return cleaned;
 }
 
 /**
@@ -146,12 +189,18 @@ export async function analyzeTextWithNvidia(userText) {
     }
 
     let cleanedContent = content.trim();
-    cleanedContent = repairTruncatedJson(cleanedContent);
+    cleanedContent = cleanedContent.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+
     const firstBrace = cleanedContent.indexOf('{');
-    const lastBrace = cleanedContent.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
-      cleanedContent = cleanedContent.substring(firstBrace, lastBrace + 1);
+    if (firstBrace !== -1) {
+      cleanedContent = cleanedContent.substring(firstBrace);
+      const lastBrace = cleanedContent.lastIndexOf('}');
+      if (lastBrace !== -1) {
+        cleanedContent = cleanedContent.substring(0, lastBrace + 1);
+      }
     }
+
+    cleanedContent = repairTruncatedJson(cleanedContent);
 
     // First, escape literal unescaped double quotes inside the JSON string
     cleanedContent = escapeLiteralQuotesInJson(cleanedContent);
